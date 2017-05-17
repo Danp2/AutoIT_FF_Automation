@@ -1,4 +1,4 @@
-﻿; :wrap=none:collapseFolds=1:maxLineLen=80:mode=autoitscript:tabSize=8:folding=indent:
+; :wrap=none:collapseFolds=1:maxLineLen=80:mode=autoitscript:tabSize=8:folding=indent:
 ; created with jEdit4AutoIt
 #include-once
 
@@ -98,7 +98,7 @@
 #Region Description
 ; ==============================================================================
 ; UDF ...........: FF.au3
-Global Const $_FF_AU3VERSION = "0.6.0.1b-13"
+Global Const $_FF_AU3VERSION = "0.6.0.1b-14"
 ; Description ...: An UDF for FireFox automation.
 ; Requirement ...: MozRepl AddOn:
 ;                  http://hyperstruct.net/projects/mozlab
@@ -109,6 +109,13 @@ Global Const $_FF_AU3VERSION = "0.6.0.1b-13"
 ; AutoIt Version : v3.3.6.1
 ; ==============================================================================
 #cs
+	V0.6.0.1b-14 (by Danp2)
+	- Changed: _FFWindowOpen to allow private browsing
+	- Changed: _FFWindowGetHandle to improve functionality
+	- Fixed: _FFTableWriteToArray
+	- Fixed: __FFStartProcess
+	- Fixed: __FFWaitForRepl
+
 	V0.6.0.1b-13
 	- Fixed: Changed: CLASS:MozillaUIWindowClass to CLASS:MozillaWindowClass
 
@@ -2988,7 +2995,7 @@ Func _FFTableWriteToArray($vTable = 0, $sMode = "index", $sReturnMode = "text", 
 				$aRows = _FFXPath($sTable & "//tr//td[" & $i + 1 & "]", $sReturnMode, 6, $iFilter)
 				If $aRows[0] > 0 Then
 					For $j = 0 To $iRows - 1
-						$aTable[$j][$i] = $aRows[$i + 1]
+						$aTable[$j][$i] = $aRows[$j + 1]
 					Next
 				EndIf
 			Next
@@ -3057,8 +3064,8 @@ EndFunc   ;==>_FFWindowClose
 ; Description ...: Returns the window-handle (hwnd) from the current browser-window.
 ; Beschreibung ..: Liefert das Window-handle (hwnd) des aktuellen Browser Fenster.
 ; AutoIt Version : V3.3.0.0
-; Syntax ........: _FFWindowGetHandle()
-; Parameter(s): .:
+; Syntax ........: _FFWindowGetHandle([$iTimeOut = 1000])
+; Parameter(s): .: $iTimeOut    - Optional: (Default = 1000) : Timeout for waiting
 ; Return Value ..: Success      - Window handle
 ;                  Failure      - ""
 ;                  @ERROR       -
@@ -3068,7 +3075,7 @@ EndFunc   ;==>_FFWindowClose
 ; Related .......: _FFWindowClose, _FFWindowSelect, _FFWindowOpen
 ; Example .......: Yes
 ; ==============================================================================
-Func _FFWindowGetHandle()
+Func _FFWindowGetHandle($iTimeOut = 1000)
 	Local Const $sFuncName = "_FFWindowGetHandle"
 	; in the future to handle with XPCOM =#=
 	Local $bErr = False
@@ -3079,9 +3086,13 @@ Func _FFWindowGetHandle()
 		Local $sTitleRnd = "FFAU3" & Random(1000000000, 9999999999, 1)
 		_FFCmd("FFau3.tmp=document.title;document.title='" & $sTitleRnd & "'")
 		Local $iMatchMode = AutoItSetOption("WinTitleMatchMode", 1)
-		Sleep(500)
-		$hWindow = WinGetHandle($sTitleRnd)
-		If @error Then $bErr = True
+
+		Local $hTimer = TimerInit()
+		Do
+			$hWindow = WinGetHandle($sTitleRnd)
+		Until $hWindow Or TimerDiff($hTimer) > $iTimeOut
+		If $hwindow = 0 Then $bErr = True
+
 		BlockInput(0)
 		AutoItSetOption("WinTitleMatchMode", $iMatchMode)
 		_FFCmd("document.title=FFau3.tmp")
@@ -3124,6 +3135,7 @@ Func _FFWindowSelect($sSearch = "", $sSearchMode = "title", $bActivate = True)
 		Local $sCommand = 'Components.classes["@mozilla.org/appshell/window-mediator;1"].getService(Components.interfaces.nsIWindowMediator).getMostRecentWindow("navigator:browser")'
 		_FFCmd("repl.enter(" & $sCommand & ")")
 		If Not @error Then
+			__FFSendJavaScripts()
 			$hWin = _FFWindowGetHandle()
 			If Not @error And $bActivate Then WinActivate($hWin)
 			SetExtended($hWin)
@@ -3160,6 +3172,7 @@ EndFunc   ;==>_FFWindowSelect
 ; Parameter(s): .: $sURL        - Optional: (Default = "about:blank") :
 ;                  $bActivate   - Optional: (Default = True)
 ;                  $bLoadWait   - Optional: (Default = True) :
+;                  $bPrivate   - Optional: (Default = False) :
 ; Return Value ..: Success      - 1 and sets
 ;                  @EXTENDED    - Window handle
 ;                  Failure      - 0 and sets
@@ -3171,7 +3184,7 @@ EndFunc   ;==>_FFWindowSelect
 ; Related .......: _FFWindowSelect, _FFWindowClose, _FFWindowGetHandle
 ; Example .......: Yes
 ; ==============================================================================
-Func _FFWindowOpen($sURL = "about:blank", $bActivate = True, $bLoadWait = True)
+Func _FFWindowOpen($sURL = "about:blank", $bActivate = True, $bLoadWait = True, $bPrivate = False)
 	Local Const $sFuncName = "_FFWindowOpen"
 
 	If Not __FFCheckURL($sURL) Then
@@ -3184,7 +3197,14 @@ Func _FFWindowOpen($sURL = "about:blank", $bActivate = True, $bLoadWait = True)
 
 	ConsoleWrite("_FFWindowOpen: " & $sURL & @CRLF)
 
+	If $bPrivate Then
+		_FFCmd("window.PrivateBrowsingUtils.privacyContextFromWindow(window).usePrivateBrowsing = true")
+	Else
+		_FFCmd("window.PrivateBrowsingUtils.privacyContextFromWindow(window).usePrivateBrowsing = false")
+	EndIf
+
 	_FFCmd("window.open('" & $sURL & "');")
+
 	If $bLoadWait Then _FFLoadWait()
 	If Not @error Then
 		If _FFWindowSelect() Then
@@ -3912,7 +3932,6 @@ Func __FFIsIP(ByRef $IP, $bSubstring = False)
 	StringRegExp($IP, $sStart & '((?:[0-9A-Fa-f]{1,4}(?::[0-9A-Fa-f]{1,4})*)?)::((?:[0-9A-Fa-f]{1,4}(?::[0-9A-Fa-f]{1,4})*)?)' & $sEnd) Or _ ; IPV6 HexCompressed
 	StringRegExp($IP, $sStart & '((?:[0-9A-Fa-f]{1,4}:){6,6})(25[0-5]||2[0-4]\d||[0-1]?\d?\d)(\.(25[0-5]||2[0-4]\d||[0-1]?\d?\d)){3}' & $sEnd) Or _ ; IPV6 6Hex4Dec
 	StringRegExp($IP, $sStart & '((?:[0-9A-Fa-f]{1,4}(?::[0-9A-Fa-f]{1,4})*)?) ::((?:[0-9A-Fa-f]{1,4}:)*)(25[0-5]||2[0-4]\d||[0-1]?\d?\d)(\.(25[0-5]||2[0-4]\d||[0-1]?\d?\d)){3}' & $sEnd) ; IPV6 Hex4DecCompressed
-
 EndFunc   ;==>__FFIsIP
 
 ; #INTERNAL_USE_ONLY# ==========================================================
@@ -4259,7 +4278,7 @@ Func __FFWaitForRepl($iTimeOut)
 		$recv = TCPRecv($_FF_GLOBAL_SOCKET, 4096)
 		;ConsoleWrite($recv & @CRLF)
 		; TCP error
-		If @error Then
+		If @error > 0 Then
 			SetError(__FFError($sFuncName, $_FF_ERROR_SendRecv, "TCPRecv :" & @error))
 			Return ""
 		EndIf
@@ -4331,7 +4350,7 @@ Func __FFStartProcess($sURL = "about:blank", $bNewWin = False, $sProfile = "defa
 	Local $sHKLM = 'HKEY_LOCAL_MACHINE\SOFTWARE\'
 	   If @OSArch <> 'X86' Then $sHKLM &= 'Wow6432Node\'
 	   $sHKLM &= 'Mozilla\Mozilla Firefox'
-	   Local $sFFExe = RegRead($sHKLM & "" & RegRead($sHKLM, "CurrentVersion") & "\Main", "PathToExe")
+	   Local $sFFExe = RegRead($sHKLM & "\" & RegRead($sHKLM, "CurrentVersion") & "\Main", "PathToExe")
 	   If @error Then
 	   SetError(__FFError($sFuncName, $_FF_ERROR_GeneralError, "Error reading registry entry for FireFox." & @CRLF & _
 		$sHKLM&"\*CurrentVersion*\Main\PathToExe" & @CRLF & _
