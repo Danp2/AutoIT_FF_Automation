@@ -1,5 +1,3 @@
-; :wrap=none:collapseFolds=1:maxLineLen=80:mode=autoitscript:tabSize=8:folding=indent:
-; created with jEdit4AutoIt
 #include-once
 
 #Region Copyright
@@ -98,7 +96,7 @@
 #Region Description
 ; ==============================================================================
 ; UDF ...........: FF.au3
-Global Const $_FF_AU3VERSION = "0.6.0.1b-14"
+Global Const $_FF_AU3VERSION = "0.6.0.1b-15"
 ; Description ...: An UDF for FireFox automation.
 ; Requirement ...: MozRepl AddOn:
 ;                  http://hyperstruct.net/projects/mozlab
@@ -109,6 +107,10 @@ Global Const $_FF_AU3VERSION = "0.6.0.1b-14"
 ; AutoIt Version : v3.3.6.1
 ; ==============================================================================
 #cs
+	V0.6.0.1b-15 (by Danp2)
+	- Fixed: Restored declaration of return variable in _FFCmd
+	- Fixed: SelectWin check of individual tabs by Title
+
 	V0.6.0.1b-14 (by Danp2)
 	- Changed: _FFWindowOpen to allow private browsing
 	- Changed: _FFWindowGetHandle to improve functionality
@@ -1407,6 +1409,8 @@ Func _FFFormOptionSelect($vElement = 0, $sElementMode = "index", $vOption = 0, $
 			$sOption = "position()=" & $vOption + 1
 		Case "text"
 			$sOption = StringFormat("contains(.,'%s')", $vOption)
+;            __FFValue2JavaScript($vOption)
+;            $sOption = StringFormat("contains(text(),'%s')", $vOption)
 		Case "name", "id", "value"
 			$sOption = StringFormat("@%s='%s'", $sOptionMode, $vOption)
 		Case Else
@@ -2322,6 +2326,7 @@ EndFunc   ;==>_FFSearch
 ; ==============================================================================
 Func _FFCmd($sArg, $iTimeOut = 30000, $bTry = True)
 	Local Const $sFuncName = "_FFCmd"
+	Local $sRet
 
 	If StringLeft($sArg, 1) = "." Then $sArg = "window.content.document" & $sArg
 
@@ -4120,7 +4125,8 @@ Func __FFSendJavaScripts($bRefresh = True, $bTrace = False)
 	; key = dec-ASCII-code
 	; X = clientX
 	; Y = clientY
-	_FFCmd('FFau3.simulateEvent=function simulateEvent(a,b,c){try{var d=document.createEvent(b);switch(b){case"MouseEvents":d.initMouseEvent(c,true,true,window,0,0,0,simulateEvent.arguments[4],simulateEvent.arguments[5],false,false,false,false,0,null);break;case"KeyboardEvent":d.initKeyEvent(c,true,true,null,false,false,false,false,simulateEvent.arguments[3],0);break;case"Event":d.initEvent(c,true,true);break}a.dispatchEvent(d);return 1}catch(e){return-3}return 0};')
+;	_FFCmd('FFau3.simulateEvent=function simulateEvent(a,b,c){try{var d=document.createEvent(b);switch(b){case"MouseEvents":d.initMouseEvent(c,true,true,window,0,0,0,simulateEvent.arguments[4],simulateEvent.arguments[5],false,false,false,false,0,null);break;case"KeyboardEvent":d.initKeyEvent(c,true,true,null,false,false,false,false,simulateEvent.arguments[3],0);break;case"Event":d.initEvent(c,true,true);break}a.dispatchEvent(d);return 1}catch(e){return-3}return 0};')
+	_FFCmd('FFau3.simulateEvent=function simulateEvent(a,b,c){try{var d=FFau3.WCD.createEvent(b);switch(b){case"MouseEvents":d.initMouseEvent(c,true,true,window,0,0,0,simulateEvent.arguments[4],simulateEvent.arguments[5],false,false,false,false,0,null);break;case"KeyboardEvent":d.initKeyEvent(c,true,true,null,false,false,false,false,simulateEvent.arguments[3],0);break;case"Event":d.initEvent(c,true,true);break}a.dispatchEvent(d);return 1}catch(e){return-3}return 0};')
 	#cs
 		_FFCmd('FFau3.simulateEvent=function simulateEvent(oObject,sEvent,sType){' & _
 		'try{ var evt=document.createEvent(sEvent);' & _
@@ -4232,7 +4238,7 @@ Func __FFSendJavaScripts($bRefresh = True, $bTrace = False)
 	; SelectWin()
 ;	_FFCmd('FFau3.SelectWin=function SelectWin(a,b,c){var d;var e=Components.classes["@mozilla.org/appshell/window-mediator;1"].getService(Components.interfaces.nsIWindowMediator).getEnumerator(c);while(e.hasMoreElements()){d=e.getNext();switch(b){case"title":if(d.title.indexOf(a)!=-1){repl.enter(d);return 1};break;case"label":if(FFau3.SearchTab(a)>-1){repl.enter(d);return 1};break;case"href":if(d.content.document.location.href.indexOf(a)!=-1){repl.enter(d);return 1};break;default:return-1}}return-1};')
 ; WDP Rewrote to check individual tabs
-	_FFCmd('FFau3.SelectWin=function SelectWin(a,b,c){var d;var e=Components.classes["@mozilla.org/appshell/window-mediator;1"].getService(Components.interfaces.nsIWindowMediator).getEnumerator(c);while(e.hasMoreElements()){d=e.getNext();switch(b){case"title":if(d.title.indexOf(a)!=-1){repl.enter(d);return 1};break;case"label":if(FFau3.SearchTab(a)>-1){repl.enter(d);return 1};break;case"href":for(var f=0; f < d.gBrowser.browsers.length; f++){var g=d.gBrowser.getBrowserAtIndex(f);if (RegExp(a).test(g.currentURI.spec)){repl.enter(g);return 1;}};break;default:return-1}}return-1};')
+_FFCmd('FFau3.SelectWin=function SelectWin(a,b,c){var d;var e=Components.classes["@mozilla.org/appshell/window-mediator;1"].getService(Components.interfaces.nsIWindowMediator).getEnumerator(c);while(e.hasMoreElements()){d=e.getNext();switch(b){case"title":for(var f=0; f < d.gBrowser.browsers.length; f++){var g=d.gBrowser.getBrowserAtIndex(f);if (RegExp(a).test(g.contentTitle)){repl.enter(g);return 1;}};break;case"label":if(FFau3.SearchTab(a)>-1){repl.enter(d);return 1};break;case"href":for(var f=0; f < d.gBrowser.browsers.length; f++){var g=d.gBrowser.getBrowserAtIndex(f);if (RegExp(a).test(g.currentURI.spec)){repl.enter(g);return 1;}};break;default:return-1}}return-1};')
 	#cs
 		_FFCmd('FFau3.SelectWin = function SelectWin(sSearch,sMode,sType){' & _
 		'var win;var enum = Components.classes["@mozilla.org/appshell/window-mediator;1"].getService(Components.interfaces.nsIWindowMediator).getEnumerator(sType);' & _
