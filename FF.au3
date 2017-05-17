@@ -98,17 +98,20 @@
 #Region Description
 ; ==============================================================================
 ; UDF ...........: FF.au3
-Global Const $_FF_AU3VERSION = "0.6.0.1b-12"
+Global Const $_FF_AU3VERSION = "0.6.0.1b-13"
 ; Description ...: An UDF for FireFox automation.
 ; Requirement ...: MozRepl AddOn:
 ;                  http://hyperstruct.net/projects/mozlab
 ;                  http://wiki.github.com/bard/mozrepl/home
 ; Author(s) .....: Thorsten Willert, Johannes Schirmer
-; Date ..........: Sat Sep 28 17:52:46 CEST 2013 @703 /Internet-Zeit/
-; FireFox Version: Firefox/23 (required 3.x.x)
+; Date ..........: Mon Apr 21 15:24:02 CEST 2014 @600 /Internet-Zeit/
+; FireFox Version: Firefox/28
 ; AutoIt Version : v3.3.6.1
 ; ==============================================================================
 #cs
+	V0.6.0.1b-13
+	- Fixed: Changed: CLASS:MozillaUIWindowClass to CLASS:MozillaWindowClass
+
 	V0.6.0.1b-12
 	- Fixed: error in __FFIsIp
 
@@ -4305,7 +4308,7 @@ EndFunc   ;==>__FFWaitForRepl
 ;                  @ERROR       -
 ;                  @EXTENDED    - PID from the firefox.exe
 ; Author(s) .....: Thorsten Willert
-; Date ..........: Wed Nov 04 16:01:59 CET 2009
+; Date ..........: Mon Apr 21 15:25:16 CEST 2014 @600 /Internet-Zeit/
 ; ==============================================================================
 Func __FFStartProcess($sURL = "about:blank", $bNewWin = False, $sProfile = "default", $bNoRemote = False, $bHide = False, $iPort = 4242, $iTimeOut = 30000)
 	Local Const $sFuncName = "__FFStartProcess"
@@ -4354,9 +4357,9 @@ Func __FFStartProcess($sURL = "about:blank", $bNewWin = False, $sProfile = "defa
 
 	If $bHide Then
 		Local $WINTITLE_MATCH_MODE = AutoItSetOption("WinTitleMatchMode", 4)
-		WinWaitActive("[CLASS:MozillaUIWindowClass]")
+		WinWaitActive("[CLASS:MozillaWindowClass]")
 		Sleep(500)
-		WinSetState("[CLASS:MozillaUIWindowClass]", "", @SW_MINIMIZE)
+		WinSetState("[CLASS:MozillaWindowClass]", "", @SW_MINIMIZE)
 		BlockInput(0)
 		AutoItSetOption("WinTitleMatchMode", $WINTITLE_MATCH_MODE)
 	Else
