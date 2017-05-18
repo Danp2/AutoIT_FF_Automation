@@ -96,7 +96,7 @@
 #Region Description
 ; ==============================================================================
 ; UDF ...........: FF.au3
-Global Const $_FF_AU3VERSION = "0.6.0.1b-15"
+Global Const $_FF_AU3VERSION = "0.6.0.1b-16"
 ; Description ...: An UDF for FireFox automation.
 ; Requirement ...: MozRepl AddOn:
 ;                  http://hyperstruct.net/projects/mozlab
@@ -107,6 +107,14 @@ Global Const $_FF_AU3VERSION = "0.6.0.1b-15"
 ; AutoIt Version : v3.3.6.1
 ; ==============================================================================
 #cs
+	V0.6.0.1b-16 (by Danp2)
+	- Fixed: _FFTableWriteToArray
+	- Fixed: _FFObjGet
+	- Changed: Added QuerySAll mode to _FFObjGet (mLipok)
+	- Changed: Added Class mode _FFTableWriteToArray (robertocm)
+	- Changed: Added Selector and Text modes to _FFClick (Jefrey)
+	- Fixed: __FFStartProcess
+
 	V0.6.0.1b-15 (by Danp2)
 	- Fixed: Restored declaration of return variable in _FFCmd
 	- Fixed: SelectWin check of individual tabs by Title
@@ -397,6 +405,10 @@ Func _FFClick($sElement, $sMode = "elements", $iIndex = 0, $bLoadWait = True)
 			$sElement = ".getElementsByClassName('" & $sElement & "')[" & $iIndex & "]"
 		Case "tag"
 			$sElement = ".getElementsByTagName('" & $sElement & "')[" & $iIndex & "]"
+		Case "selector"
+			$sElement = ".querySelectorAll('" & $sElement & "')[" & $iIndex & "]"
+		Case "text"
+			$sElement = ".evaluate(""//*[contains(text(), '" & $sElement & "')]"", document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;"
 		Case Else
 			SetError(__FFError($sFuncName, $_FF_ERROR_InvalidValue, "(elements|id|name|class|tag) $sMode: " & $sMode))
 			Return 0
@@ -2716,12 +2728,13 @@ EndFunc   ;==>_FFTabDuplicate
 ; ==============================================================================
 Func _FFTabExists($sLabel, $sMode = "label")
 	Local Const $sFuncName = "_FFTabExists"
+	Local $RetVal
 
 	_FFLoadWait()
 
 	Switch StringLower($sMode)
 		Case "label"
-			Local $RetVal = Int(_FFCmd("FFau3.SearchTab('" & $sLabel & "')", 3000))
+			$RetVal = Int(_FFCmd("FFau3.SearchTab('" & $sLabel & "')", 3000))
 			Switch @error
 				Case $_FF_ERROR_Success
 					If $RetVal > -1 Then
@@ -2739,7 +2752,7 @@ Func _FFTabExists($sLabel, $sMode = "label")
 					Return 0
 			EndSwitch
 		Case "href"
-			Local $RetVal = Int(_FFCmd("FFau3.SearchTabURL('" & $sLabel & "')", 3000))
+			$RetVal = Int(_FFCmd("FFau3.SearchTabURL('" & $sLabel & "')", 3000))
 
 			Switch @error
 				Case $_FF_ERROR_Success
@@ -2910,6 +2923,8 @@ Func _FFTableWriteToArray($vTable = 0, $sMode = "index", $sReturnMode = "text", 
 			$sTable = "//table[@name='" & $vTable & "']"
 		Case "id"
 			$sTable = "//table[@id='" & $vTable & "']"
+		Case "class"
+            $sTable = "//table[@class='" & $vTable & "']"
 		Case Else
 			SetError(__FFError($sFuncName, $_FF_ERROR_InvalidValue, "(index|name|id) $sMode: " & $sMode))
 			Return 0
@@ -2990,7 +3005,7 @@ Func _FFTableWriteToArray($vTable = 0, $sMode = "index", $sReturnMode = "text", 
 			For $i = 0 To $iRows - 1
 				$aCols = _FFXPath($sTable & "//tr[" & $i + 1 & "]//td", $sReturnMode, 6, $iFilter)
 				If $aCols[0] > 0 Then
-					For $j = 0 To $iCols - 1
+					For $j = 0 To $aCols[0] - 1
 						$aTable[$i][$j] = $aCols[$j + 1]
 					Next
 				EndIf
@@ -2998,6 +3013,7 @@ Func _FFTableWriteToArray($vTable = 0, $sMode = "index", $sReturnMode = "text", 
 		Else
 			For $i = 0 To $iCols - 1
 				$aRows = _FFXPath($sTable & "//tr//td[" & $i + 1 & "]", $sReturnMode, 6, $iFilter)
+
 				If $aRows[0] > 0 Then
 					For $j = 0 To $iRows - 1
 						$aTable[$j][$i] = $aRows[$j + 1]
@@ -3470,13 +3486,15 @@ Func _FFObjGet($sElement, $sMode = "id", $iIndex = 0)
 
 	Switch StringLower($sMode)
 		Case "id"
-			$sRet = ".getElementById('" & $sElement & "')"
+			$sRet = ".getElementById('" & $sElement & "')[" & $iIndex & "]"
 		Case "name"
 			$sRet = ".getElementsByName('" & $sElement & "')[" & $iIndex & "]"
 		Case "class"
 			$sRet = ".getElementsByClassName('" & $sElement & "')[" & $iIndex & "]"
 		Case "tag"
 			$sRet = ".getElementsByTagName('" & $sElement & "')[" & $iIndex & "]"
+        Case "QuerySAll"
+            $sRet = ".querySelectorAll('" & $sElement & "')[" & $iIndex & "]"
 		Case Else
 			SetError(__FFError($sFuncName, $_FF_ERROR_InvalidValue, "(id|name|class|tag) $sMode: " & $sMode))
 			Return ""
@@ -3486,7 +3504,7 @@ Func _FFObjGet($sElement, $sMode = "id", $iIndex = 0)
 	If Not @error And $RetVal = 1 Then
 		Return "OBJECT|" & $sRet
 	Else
-		SetError(__FFError($sFuncName, $_FF_ERROR_NoMatch, "$sElement not found: " & $sElement))
+		SetError(__FFError($sFuncName, $_FF_ERROR_NoMatch, "$sElement not found: " & $sElement) & "   $sMode:" & $sMode )
 		Return ""
 	EndIf
 EndFunc   ;==>_FFObjGet
@@ -4365,7 +4383,9 @@ Func __FFStartProcess($sURL = "about:blank", $bNewWin = False, $sProfile = "defa
 	   EndIf
 
 	; Updated per http://www.autoitscript.com/forum/topic/95595-ffau3-v0600b/page__st__380#entry958812
-	Local $sCommand = StringFormat('"%s" %s %s %s "-repl %i %s"', $sFFExe, $sNewWin, $sURL, $sNoRemote, $iPort, $sProfile)
+;	Local $sCommand = StringFormat('"%s" %s %s %s "-repl %i %s"', $sFFExe, $sNewWin, $sURL, $sNoRemote, $iPort, $sProfile)
+	Local $sCommand = StringFormat('"%s" %s %s %s "-repl %i" %s', $sFFExe, $sNewWin, $sURL, $sNoRemote, $iPort, $sProfile)
+
 	$PID = Run($sCommand)
 	If $bHide Then BlockInput(1)
 
