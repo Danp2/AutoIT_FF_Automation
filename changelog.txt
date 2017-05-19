@@ -1,0 +1,77 @@
+	V0.6.0.1b-16 (by Danp2)
+	- Fixed: _FFTableWriteToArray
+	- Fixed: _FFObjGet
+	- Changed: Added QuerySAll mode to _FFObjGet (mLipok)
+	- Changed: Added Class mode _FFTableWriteToArray (robertocm)
+	- Changed: Added Selector and Text modes to _FFClick (Jefrey)
+	- Fixed: __FFStartProcess
+
+	V0.6.0.1b-15 (by Danp2)
+	- Fixed: Restored declaration of return variable in _FFCmd
+	- Fixed: SelectWin check of individual tabs by Title
+
+	V0.6.0.1b-14 (by Danp2)
+	- Changed: _FFWindowOpen to allow private browsing
+	- Changed: _FFWindowGetHandle to improve functionality
+	- Fixed: _FFTableWriteToArray
+	- Fixed: __FFStartProcess
+	- Fixed: __FFWaitForRepl
+
+	V0.6.0.1b-13
+	- Fixed: Changed: CLASS:MozillaUIWindowClass to CLASS:MozillaWindowClass
+
+	V0.6.0.1b-12
+	- Fixed: error in __FFIsIp
+
+	V0.6.0.1b-10
+	- Added: __FFIsIP: IPV6 Support (IVP6, HexCompressed, 6Hex4Dec, Hex4DecCompressed)
+
+	V0.6.0.1b-9
+	- Added: __FFStartProcess: 64bit support
+	- Added: __FFIsURL: support for intranet
+	- Changed: _FFQuit now closes FireFox with multiple windows
+	- Fixed: Connection-limit to MozRepl
+
+	V0.6.0.1b-8 (by Danp2)
+	- Changed: _FFTabExists to allow search by href
+	- Changed: _FFTabSetSelected to allow selection by href
+	- Changed: SelectWin to check individual tabs
+	- Added: FFau3.SearchTabURL helper function
+	- Fixed: __FFStartProcess
+	- Fixed: _FFGetPosition
+
+	V0.6.0.1b-7
+	- New: Internal function: __FFMultiDispatchEvent: Dispatches multiple events on one element
+	- Added: _FFDisPatchEvent can now simulate MouseEvents: click, mousedown, mouseup, mouseover, mousemove, mouseout
+	- Added: Global constants $_FF_Event_*
+	- Changed: Removed connection-limit to MozRepl
+	- Optimized: __FFFilterString
+	- Optimized: __FFB2S (Bool to string)
+	- Optimized: __FFIsIP
+
+	V0.6.0.1b-6
+	- Added: Internal function __FFSetTopDocument()
+	- Changed: Default values for _FFXpath: _FFXPath($sQuery, $sAttribute = "", $iReturnType = 9, $iFilter = 0)
+	- Changed/Fixed: _FFSearch($sSearchString[, $bCaseSensitive = False[, $bWholeWord = False[, $bSearchInFrames = True]]])
+	!!! Now you can use as $sSearchString RegExp, too!
+	- Fixed:
+		_FFAction
+		_FFClick
+		_FFFormSubmit
+		_FFLoadWait
+		_FFDisPatchEvent
+		_FFOpenURL
+		_FFTabAdd
+		_FFTabClose
+		_FFTabSetSelected
+		now updating the FFau3.WCD-object (window.content.document)
+	- Fixed: Different problems after _FFTabAdd
+	- Fixed: Different problems after _FFOpenURL
+	- Fixed: Error in _FFAu3Option()
+	<V0.6.x.x
+	For compatibily for older scripts, please use this UDF:
+	http://thorsten-willert.de/Themen/FFau3/FF.au3/FFEx.au3
+	ToDo:
+	Textsuche (name, id, text ...) per Substring, String, RegEx
+	Events fuer die _FFForm* Funktionen
+	Update der Window-Funktionen
