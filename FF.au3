@@ -96,7 +96,7 @@
 #Region Description
 ; ==============================================================================
 ; UDF ...........: FF.au3
-Global Const $_FF_AU3VERSION = "0.6.0.1b-16"
+Global Const $_FF_AU3VERSION = "0.6.0.2b-1"
 ; Description ...: An UDF for FireFox automation.
 ; Requirement ...: MozRepl AddOn:
 ;                  http://hyperstruct.net/projects/mozlab
@@ -107,13 +107,24 @@ Global Const $_FF_AU3VERSION = "0.6.0.1b-16"
 ; AutoIt Version : v3.3.6.1
 ; ==============================================================================
 #cs
-	V0.6.0.1b-16 (by Danp2)
+	V0.6.0.2b-1 (by Danp2)
 	- Fixed: _FFTableWriteToArray
 	- Fixed: _FFObjGet
 	- Changed: Added QuerySAll mode to _FFObjGet (mLipok)
 	- Changed: Added Class mode _FFTableWriteToArray (robertocm)
 	- Changed: Added Selector and Text modes to _FFClick (Jefrey)
 	- Fixed: __FFStartProcess
+
+	(below was incorporated from 0.6.0.2b found at http://www.thorsten-willert.de/)
+	- Added: __FFMultiDispatchEvent: the follwing HTML5-events:
+		$_FF_Event_OnContextMenu
+		$_FF_Event_OnFocus
+		$_FF_Event_OnInput
+		$_FF_Event_OnInvalid
+		$_FF_Event_OnReset
+		(not supported by _FFDispatchEvents yet)
+	- Fixed: _FFCmd: __FFRecv error check	
+	
 
 	V0.6.0.1b-15 (by Danp2)
 	- Fixed: Restored declaration of return variable in _FFCmd
@@ -218,7 +229,12 @@ Global Enum Step * 2 $_FF_Event_Change = 1, _
 		$_FF_Event_MouseUp, _
 		$_FF_Event_MouseOver, _
 		$_FF_Event_MouseMove, _
-		$_FF_Event_MouseOut
+		$_FF_Event_MouseOut, _
+		$_FF_Event_OnContextMenu, _
+		$_FF_Event_OnFocus, _
+		$_FF_Event_OnInput, _
+		$_FF_Event_OnInvalid, _
+		$_FF_Event_OnReset
 #EndRegion Global Constants
 
 #Region Global Variables
@@ -1421,8 +1437,6 @@ Func _FFFormOptionSelect($vElement = 0, $sElementMode = "index", $vOption = 0, $
 			$sOption = "position()=" & $vOption + 1
 		Case "text"
 			$sOption = StringFormat("contains(.,'%s')", $vOption)
-;            __FFValue2JavaScript($vOption)
-;            $sOption = StringFormat("contains(text(),'%s')", $vOption)
 		Case "name", "id", "value"
 			$sOption = StringFormat("@%s='%s'", $sOptionMode, $vOption)
 		Case Else
@@ -1766,14 +1780,14 @@ Func _FFDispatchEvent($sElement, $sEventType = "change", $iKeyCode = 13)
 	If StringLeft($sElement, 7) = "OBJECT|" Then $sElement = StringMid($sElement, 8)
 
 	Switch $sEventType
-		Case "change", "select", "focus", "blur", "resize", "reset"
+		Case "change", "select", "focus", "blur", "resize", "reset", "oncontextmenu", "onfocus", "oninput", "oninvalid", "onreset"		
 			$sType = "Event"
 		Case "keydown", "keypress", "keyup"
 			$sType = "KeyboardEvent"
 		Case "click", "mousedown", "mouseup", "mouseover", "mousemove", "mouseout"
 			$sType = "MouseEvents"
 		Case Else
-			SetError(__FFError($sFuncName, $_FF_ERROR_InvalidValue, "(change|select|focus|blur|resize|keydown|keypress|keyup|click|mousedown|mouseup|mouseover|mousemove|mouseout) $sEventType: " & $sEventType))
+			SetError(__FFError($sFuncName, $_FF_ERROR_InvalidValue, "(change|select|focus|blur|resize|reset|oncontextmenu|onfocus|oninput|oninvalid|onreset|keydown|keypress|keyup|click|mousedown|mouseup|mouseover|mousemove|mouseout) $sEventType: " & $sEventType))
 			Return 0
 	EndSwitch
 
@@ -2354,7 +2368,7 @@ Func _FFCmd($sArg, $iTimeOut = 30000, $bTry = True)
 
 			$sRet = __FFRecv($iTimeOut)
 
-			If Not @error Or String($sRet) <> "_FFCmd_Err" Then
+			If Not @error And String($sRet) <> "_FFCmd_Err" Then
 				Return $sRet
 			ElseIf StringInStr($sArgWrapped, "wrappedJSObject") Then
 				__FFSend($sArgWrapped)
@@ -4081,6 +4095,16 @@ EndFunc   ;==>__FFValue2JavaScript
 ;                               | $_FF_Event_Keypress
 ;                               | $_FF_Event_Keyup
 ;                               | $_FF_Event_Click
+;				                | $_FF_Event_MouseUp
+;				                | $_FF_Event_MouseDown
+;				                | $_FF_Event_MouseOver
+;				                | $_FF_Event_MouseMove
+;				                | $_FF_Event_MouseOut
+;				                | $_FF_Event_OnContextMenu
+;				                | $_FF_Event_OnFocus
+;				                | $_FF_Event_OnInput
+;				                | $_FF_Event_OnInvalid
+;				                | $_FF_Event_OnReset
 ;                  $iKeyCode    - Optional: (Default = 13) :
 ; Return Value ..: Success      - 1
 ;                  Failure      - 0
@@ -4103,6 +4127,11 @@ Func __FFMultiDispatchEvent($sElement, $iEventType, $iKeyCode = 13)
 	If BitAnd($iEventType, $_FF_Event_MouseOver) Then $iRet = $iRet And _FFDispatchEvent($sElement, "mouseover", $iKeyCode)
 	If BitAnd($iEventType, $_FF_Event_MouseMove) Then $iRet = $iRet And _FFDispatchEvent($sElement, "mousemove", $iKeyCode)
 	If BitAnd($iEventType, $_FF_Event_MouseOut) Then $iRet = $iRet And _FFDispatchEvent($sElement, "mouseout", $iKeyCode)
+	If BitAnd($iEventType, $_FF_Event_OnContextMenu) Then $iRet = $iRet And _FFDispatchEvent($sElement, "oncontextmenu", $iKeyCode)
+	If BitAnd($iEventType, $_FF_Event_OnFocus) Then $iRet = $iRet And _FFDispatchEvent($sElement, "onfocus", $iKeyCode)
+	If BitAnd($iEventType, $_FF_Event_OnInput) Then $iRet = $iRet And _FFDispatchEvent($sElement, "oninput", $iKeyCode)
+	If BitAnd($iEventType, $_FF_Event_OnInvalid) Then $iRet = $iRet And _FFDispatchEvent($sElement, "oninvalid", $iKeyCode)
+	If BitAnd($iEventType, $_FF_Event_OnReset) Then $iRet = $iRet And _FFDispatchEvent($sElement, "onreset", $iKeyCode)
 	Return $iRet
 EndFunc ;==> __FFMultiDispatchEvent
 

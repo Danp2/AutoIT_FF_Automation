@@ -1,4 +1,4 @@
-	V0.6.0.1b-16 (by Danp2)
+	V0.6.0.2b-1 (by Danp2)
 	- Fixed: _FFTableWriteToArray
 	- Fixed: _FFObjGet
 	- Changed: Added QuerySAll mode to _FFObjGet (mLipok)
@@ -6,6 +6,18 @@
 	- Changed: Added Selector and Text modes to _FFClick (Jefrey)
 	- Fixed: __FFStartProcess
 
+	(below was incorporated from 0.6.0.2b found at http://www.thorsten-willert.de/)
+	- Added: __FFMultiDispatchEvent: the follwing HTML5-events:
+		$_FF_Event_OnContextMenu
+		$_FF_Event_OnFocus
+		$_FF_Event_OnInput
+		$_FF_Event_OnInvalid
+		$_FF_Event_OnReset
+		(not supported by _FFDispatchEvents yet)
+	- Fixed: __FFWaitForRepl: TCP error
+	- Fixed: __FFStartProcess: Missing backslash in Registry path
+	- Fixed: _FFCmd: __FFRcv error check	
+	
 	V0.6.0.1b-15 (by Danp2)
 	- Fixed: Restored declaration of return variable in _FFCmd
 	- Fixed: SelectWin check of individual tabs by Title
