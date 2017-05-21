@@ -3447,12 +3447,12 @@ EndFunc   ;==>_FFXPath
 ; Beschreibung ..: Liefert ein Object zurueck. (String zur Verwendung mit den anderen _FFObj* Funktionen)
 ; AutoIt Version : V3.3.0.0
 ; Syntax ........: _FFObjGet($sElement[, $sMode = "id"[, $iIndex = 0]])
-; Parameter(s): .: $sElement    -
-;                  $sMode       - Optional: (Default = "id") :
-;                               | ID
-;                               | Name + index
-;                               | Class + index
-;                               | Tag-name + index
+; Parameter(s): .: $sElement    - string that represents html tag atribute name, or tag name which will be searched
+;                  $sMode       - Optional:
+;                               | "id" (Default) search for element with attribute "id" = $sElement
+;                               | "name" search for element with attribute "name" = $sElement and index = $iIndex
+;                               | "class" search for element with attribute "class" name = $sElement and index = $iIndex
+;                               | "tag"  search for element with "tag" name = $sElement and index = $iIndex
 ;                  $iIndex      - Optional: (Default = 0) :
 ; Return Value ..: Success      - String (object to use in the _FFObj* functions)
 ;                  Failure      - Epmty string
