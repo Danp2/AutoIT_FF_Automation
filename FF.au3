@@ -3507,8 +3507,8 @@ Func _FFObjGet($sElement, $sMode = "id", $iIndex = 0)
 			$sRet = ".getElementsByClassName('" & $sElement & "')[" & $iIndex & "]"
 		Case "tag"
 			$sRet = ".getElementsByTagName('" & $sElement & "')[" & $iIndex & "]"
-        Case "QuerySAll"
-            $sRet = ".querySelectorAll('" & $sElement & "')[" & $iIndex & "]"
+		Case "QuerySAll"
+			$sRet = ".querySelectorAll('" & $sElement & "')[" & $iIndex & "]"
 		Case Else
 			SetError(__FFError($sFuncName, $_FF_ERROR_InvalidValue, "(id|name|class|tag) $sMode: " & $sMode))
 			Return ""
