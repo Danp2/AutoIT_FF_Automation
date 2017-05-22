@@ -1,3 +1,8 @@
+	V0.6.0..... (by .....)
+	- Changed: _FFObjGet() - parameter name "QuerySAll" >> "selector"  (mLipok)
+	- Changed: _FFObjGet() - error handling $sMessage in __FFError() (mLipok)
+	- Added: #AutoIt3Wrapper directives for Au3Check
+	
 	V0.6.0.2b-1 (by Danp2)
 	- Fixed: _FFTableWriteToArray
 	- Fixed: _FFObjGet
