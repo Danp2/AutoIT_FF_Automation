@@ -104,6 +104,8 @@ Global Const $_FF_AU3VERSION = "0.6.0.2b-1"
 ;                  http://hyperstruct.net/projects/mozlab
 ;                  http://wiki.github.com/bard/mozrepl/home
 ; Author(s) .....: Thorsten Willert, Johannes Schirmer
+; url ...........: http://www.autoitscript.com/forum/index.php?showtopic=167661
+; url ...........: https://github.com/Danp2/AutoIT_FF_Automation/
 ; Date ..........: Mon Apr 21 15:24:02 CEST 2014 @600 /Internet-Zeit/
 ; FireFox Version: Firefox/28
 ; AutoIt Version : v3.3.6.1
