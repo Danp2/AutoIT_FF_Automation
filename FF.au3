@@ -3511,7 +3511,7 @@ Func _FFObjGet($sElement, $sMode = "id", $iIndex = 0)
 		Case "selector"
 			$sRet = ".querySelectorAll('" & $sElement & "')[" & $iIndex & "]"
 		Case Else
-			SetError(__FFError($sFuncName, $_FF_ERROR_InvalidValue, "(id|name|class|tag) $sMode: " & $sMode))
+			SetError(__FFError($sFuncName, $_FF_ERROR_InvalidValue, "(id|name|class|tag|selector) $sMode: " & $sMode))
 			Return ""
 	EndSwitch
 
