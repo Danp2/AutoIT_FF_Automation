@@ -3477,13 +3477,14 @@ EndFunc   ;==>_FFXPath
 ; Beschreibung ..: Liefert ein Object zurueck. (String zur Verwendung mit den anderen _FFObj* Funktionen)
 ; AutoIt Version : V3.3.0.0
 ; Syntax ........: _FFObjGet($sElement[, $sMode = "id"[, $iIndex = 0]])
-; Parameter(s): .: $sElement    -
-;                  $sMode       - Optional: (Default = "id") :
-;                               | ID
-;                               | Name + index
-;                               | Class + index
-;                               | Tag-name + index
-;                  $iIndex      - Optional: (Default = 0) :
+; Parameter(s): .: $sElement    - string that identifies the desired element
+;                  $sMode       - specifies the mode of selection (Optional)
+;                               | "id" (Default) - search for element by ID
+;                               | "name"         - search for element by name
+;                               | "class"        - search for element by class name
+;                               | "tag"          - search for element by tag name
+;                               | "selector"     - search for element by using querySelectorAll
+;                  $iIndex      - Optional: (Default = 0) : specify which instance of the item to return
 ; Return Value ..: Success      - String (object to use in the _FFObj* functions)
 ;                  Failure      - Epmty string
 ;                  @ERROR       -
@@ -3507,7 +3508,7 @@ Func _FFObjGet($sElement, $sMode = "id", $iIndex = 0)
 			$sRet = ".getElementsByClassName('" & $sElement & "')[" & $iIndex & "]"
 		Case "tag"
 			$sRet = ".getElementsByTagName('" & $sElement & "')[" & $iIndex & "]"
-		Case "QuerySAll"
+		Case "selector"
 			$sRet = ".querySelectorAll('" & $sElement & "')[" & $iIndex & "]"
 		Case Else
 			SetError(__FFError($sFuncName, $_FF_ERROR_InvalidValue, "(id|name|class|tag) $sMode: " & $sMode))
