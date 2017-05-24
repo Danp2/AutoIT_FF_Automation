@@ -1,15 +1,12 @@
-	V0.6.0..... (by .....)
-	- Changed: _FFObjGet() - parameter name "QuerySAll" >> "selector"  (mLipok)
-	- Changed: _FFObjGet() - error handling $sMessage in __FFError() (mLipok)
-	- Added: #AutoIt3Wrapper directives for Au3Check
-	
 	V0.6.0.2b-1 (by Danp2)
 	- Fixed: _FFTableWriteToArray
 	- Fixed: _FFObjGet
-	- Changed: Added QuerySAll mode to _FFObjGet (mLipok)
+	- Changed: Added Selector mode to _FFObjGet (mLipok)
 	- Changed: Added Class mode _FFTableWriteToArray (robertocm)
 	- Changed: Added Selector and Text modes to _FFClick (Jefrey)
 	- Fixed: __FFStartProcess
+	- Added: #AutoIt3Wrapper directives for Au3Check
+	- Changed: _FFObjGet() - error handling $sMessage in __FFError() (mLipok)
 
 	(below was incorporated from 0.6.0.2b found at http://www.thorsten-willert.de/)
 	- Added: __FFMultiDispatchEvent: the follwing HTML5-events:
